@@ -7,7 +7,7 @@ export async function POST() {
   const result = await generateText({
     model,
     prompt: 'Say hello in Chinese',
-    maxTokens: 50,
+    maxOutputTokens: 50,
   });
   
   return Response.json({
