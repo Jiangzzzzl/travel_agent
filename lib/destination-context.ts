@@ -100,7 +100,7 @@ class DestinationContextManager {
     const knownCities = [
       '北京', '上海', '西安', '杭州', '成都', '大理', '宁波', '清迈', '东京', '巴黎', '伦敦', '纽约',
       'Beijing', 'Shanghai', 'Xi An', 'Hangzhou', 'Chengdu', 'Dali', 'Ningbo', 'Chiang Mai', 
-      'Tokyo', 'Paris', 'London', 'New York'
+      'Tokyo', 'Paris', 'London', 'New York', 'Santorini'
     ];
     
     for (const city of knownCities) {
@@ -163,7 +163,7 @@ class DestinationContextManager {
       // 直接城市名 + 地点类型
       /([A-Za-z\u4e00-\u9fa5]{2,15})\s*(?:市|城|地区|area|city)/gi,
       // 单独的知名城市名（如果在预定义列表中） - 扩展英文城市
-      /\b(杭州|西安|北京|上海|成都|大理|宁波|清迈|东京|巴黎|伦敦|纽约|Tokyo|Paris|London|New\s+York|Xi\s*An|Beijing|Shanghai|Hangzhou|Chengdu|Dali|Ningbo|Chiang\s+Mai)\b/gi,
+      /\b(杭州|西安|北京|上海|成都|大理|宁波|清迈|东京|巴黎|伦敦|纽约|Tokyo|Paris|London|New\s+York|Xi\s*An|Beijing|Shanghai|Hangzhou|Chengdu|Dali|Ningbo|Chiang\s+Mai|Santorini)\b/gi,
     ];
 
     for (const pattern of destinationPatterns) {
@@ -192,7 +192,7 @@ class DestinationContextManager {
     const knownCities = [
       '北京', '上海', '西安', '杭州', '成都', '大理', '清迈', '东京', '巴黎', '伦敦', '纽约', '宁波',
       'Beijing', 'Shanghai', 'Xi An', 'Hangzhou', 'Chengdu', 'Dali', 'Chiang Mai', 
-      'Tokyo', 'Paris', 'London', 'New York', 'Ningbo'
+      'Tokyo', 'Paris', 'London', 'New York', 'Ningbo', 'Santorini'
     ];
     const textLower = text.toLowerCase();
     const currentLower = currentCity.toLowerCase();
@@ -467,6 +467,13 @@ class DestinationContextManager {
         coordinates: { lat: 18.7883, lng: 98.9853 },
         radius: 30,
         aliases: ['清迈', 'เชียงใหม่', 'chiang mai', 'chiangmai']
+      },
+      'Santorini': {
+        name: 'Santorini',
+        country: 'Greece',
+        coordinates: { lat: 36.3932, lng: 25.4615 },
+        radius: 20,
+        aliases: ['圣托里尼', 'santorini', 'Santorini Sunset Route']
       },
     };
 
