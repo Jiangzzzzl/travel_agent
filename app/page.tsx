@@ -98,6 +98,8 @@ export default function TravelAgentPage() {
         id: nanoid(),
         role: 'user',
         display: <div className="text-sm leading-relaxed">{userInput}</div>,
+        text: userInput, // 添加text字段用于目的地检测
+        content: userInput, // 添加content字段作为备用
       },
     ]);
 
