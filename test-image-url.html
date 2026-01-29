@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>图片URL测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        .test-section { margin: 20px 0; padding: 20px; background: #2a2a2a; border-radius: 10px; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; }
+        .url { font-family: monospace; background: #333; padding: 10px; border-radius: 5px; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <h1>🧪 图片URL测试</h1>
+    
+    <div class="test-section">
+        <h2>修复前的URL（有问题）</h2>
+        <div class="url">https://source.unsplash.com/1792x1024/?+travel+landscape+architecture+city+landmark+scenic+beautiful&fit=crop&crop=center&auto=format&q=90&fm=jpg&sig=448</div>
+        <img src="https://source.unsplash.com/1792x1024/?+travel+landscape+architecture+city+landmark+scenic+beautiful&fit=crop&crop=center&auto=format&q=90&fm=jpg&sig=448" alt="修复前" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; color:red;">❌ 图片加载失败</div>
+    </div>
+
+    <div class="test-section">
+        <h2>修复后的URL（应该正常）</h2>
+        <div class="url">https://source.unsplash.com/1792x1024/?travel+landscape+architecture+city+landmark+scenic+beautiful&sig=123</div>
+        <img src="https://source.unsplash.com/1792x1024/?travel+landscape+architecture+city+landmark+scenic+beautiful&sig=123" alt="修复后" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; color:red;">❌ 图片加载失败</div>
+    </div>
+
+    <div class="test-section">
+        <h2>备用方案 - Picsum</h2>
+        <div class="url">https://picsum.photos/800/600?random=456</div>
+        <img src="https://picsum.photos/800/600?random=456" alt="Picsum备用" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; color:red;">❌ 图片加载失败</div>
+    </div>
+
+    <div class="test-section">
+        <h2>带中文搜索词的URL</h2>
+        <div class="url">https://source.unsplash.com/1792x1024/?beijing+travel+landscape+architecture+city+landmark+scenic+beautiful&sig=789</div>
+        <img src="https://source.unsplash.com/1792x1024/?beijing+travel+landscape+architecture+city+landmark+scenic+beautiful&sig=789" alt="北京" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; color:red;">❌ 图片加载失败</div>
+    </div>
+
+    <script>
+        // 测试新的URL生成逻辑
+        function testUrlGeneration() {
+            const name = "北京";
+            const cleanName = name.replace(/[^\w\s\u4e00-\u9fff]/gi, '').trim();
+            const baseTerms = ['travel', 'landscape', 'architecture', 'city', 'landmark', 'scenic', 'beautiful'];
+            const searchTerms = cleanName 
+                ? [encodeURIComponent(cleanName), ...baseTerms].join('+')
+                : baseTerms.join('+');
+            
+            console.log('原始名称:', name);
+            console.log('清理后名称:', cleanName);
+            console.log('搜索词:', searchTerms);
+            
+            const url = `https://source.unsplash.com/1792x1024/?${searchTerms}&sig=${Math.floor(Math.random() * 1000)}`;
+            console.log('生成的URL:', url);
+            
+            return url;
+        }
+        
+        console.log('测试URL生成:', testUrlGeneration());
+    </script>
+</body>
+</html>

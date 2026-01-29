@@ -1,0 +1,35 @@
+export async function register() {
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    console.log('🔧 Configuring proxy for Gemini API...');
+    
+    // 设置基本的环境变量代理
+    process.env.HTTP_PROXY = 'http://127.0.0.1:7890';
+    process.env.HTTPS_PROXY = 'http://127.0.0.1:7890';
+    process.env.NO_PROXY = 'localhost,127.0.0.1';
+    
+    // 设置 global-agent 环境变量
+    process.env.GLOBAL_AGENT_HTTP_PROXY = 'http://127.0.0.1:7890';
+    process.env.GLOBAL_AGENT_HTTPS_PROXY = 'http://127.0.0.1:7890';
+    process.env.GLOBAL_AGENT_NO_PROXY = 'localhost,127.0.0.1';
+    
+    console.log('✅ Proxy environment variables configured');
+    
+    // 尝试启用 global-agent
+    try {
+      const globalAgent = await import('global-agent');
+      globalAgent.bootstrap();
+      console.log('✅ Global-agent proxy enabled');
+    } catch (error) {
+      console.log('⚠️ Global-agent not available:', error.message);
+    }
+    
+    // 设置 DNS 优先级
+    try {
+      const dns = await import('dns');
+      dns.setDefaultResultOrder('ipv4first');
+      console.log('✅ DNS set to prefer IPv4');
+    } catch (error) {
+      console.log('⚠️ DNS configuration failed:', error.message);
+    }
+  }
+}

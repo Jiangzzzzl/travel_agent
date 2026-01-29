@@ -1,0 +1,41 @@
+{
+  "name": "travel-agent",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^3.0.16",
+    "@ai-sdk/rsc": "^2.0.33",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/typography": "^0.5.19",
+    "ai": "^6.0.33",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.29.0",
+    "global-agent": "^3.0.0",
+    "https-proxy-agent": "^7.0.6",
+    "lucide-react": "^0.562.0",
+    "nanoid": "^5.0.9",
+    "next": "^15.5.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^2.5.5",
+    "undici": "^7.19.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.7.2"
+  }
+}
