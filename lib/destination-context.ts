@@ -99,7 +99,7 @@ class DestinationContextManager {
     
     // 特殊处理：直接检查是否包含已知城市名
     const knownCities = [
-      '北京', '上海', '西安', '杭州', '成都', '大理', '宁波', '清迈', '东京', '巴黎', '伦敦', '纽约',
+      '北京', '上海', '西安', '杭州', '成都', '大理', '宁波', '潮汕', '清迈', '东京', '巴黎', '伦敦', '纽约',
       'Beijing', 'Shanghai', 'Xi An', 'Hangzhou', 'Chengdu', 'Dali', 'Ningbo', 'Chiang Mai', 
       'Tokyo', 'Paris', 'London', 'New York', 'Santorini'
     ];
@@ -155,8 +155,8 @@ class DestinationContextManager {
     
     // 目的地检测模式 - 更精确的检测
     const destinationPatterns = [
-      // 明确的旅行意图 - 中文模式
-      /(?:去|到|游览|旅游|参观|想去|计划去|打算去)\s*([A-Za-z\u4e00-\u9fa5]{2,15})(?:\s|$|[玩游览旅游参观，。！？])/gi,
+      // 明确的旅行意图 - 中文模式（改进版，避免匹配到动词）
+      /(?:去|到|游览|旅游|参观|想去|计划去|打算去)\s*([A-Za-z\u4e00-\u9fa5]{2,15})(?=\s|$|[玩游览旅游参观，。！？])/gi,
       // 英文旅行意图模式 - 支持多词城市名
       /(?:plan.*?trip\s+to|visit|explore|travel\s+to|go\s+to|trip\s+to)\s+([A-Za-z]+(?:\s+[A-Za-z]+)*)/gi,
       // 行程规划模式 - 中英文
@@ -166,7 +166,7 @@ class DestinationContextManager {
       // 直接城市名 + 地点类型
       /([A-Za-z\u4e00-\u9fa5]{2,15})\s*(?:市|城|地区|area|city)/gi,
       // 单独的知名城市名（如果在预定义列表中） - 扩展英文城市
-      /\b(杭州|西安|北京|上海|成都|大理|宁波|清迈|东京|巴黎|伦敦|纽约|Tokyo|Paris|London|New\s+York|Xi\s*An|Beijing|Shanghai|Hangzhou|Chengdu|Dali|Ningbo|Chiang\s+Mai|Santorini)\b/gi,
+      /\b(杭州|西安|北京|上海|成都|大理|宁波|清迈|东京|巴黎|伦敦|纽约|潮汕|Tokyo|Paris|London|New\s+York|Xi\s*An|Beijing|Shanghai|Hangzhou|Chengdu|Dali|Ningbo|Chiang\s+Mai|Santorini)\b/gi,
     ];
 
     for (const pattern of destinationPatterns) {
@@ -193,7 +193,7 @@ class DestinationContextManager {
    */
   private hasOtherCityMention(text: string, currentCity: string): boolean {
     const knownCities = [
-      '北京', '上海', '西安', '杭州', '成都', '大理', '清迈', '东京', '巴黎', '伦敦', '纽约', '宁波',
+      '北京', '上海', '西安', '杭州', '成都', '大理', '清迈', '东京', '巴黎', '伦敦', '纽约', '宁波', '潮汕',
       'Beijing', 'Shanghai', 'Xi An', 'Hangzhou', 'Chengdu', 'Dali', 'Chiang Mai', 
       'Tokyo', 'Paris', 'London', 'New York', 'Ningbo', 'Santorini'
     ];
@@ -274,10 +274,12 @@ class DestinationContextManager {
    * 创建目的地信息对象
    */
   private createDestinationInfo(name: string): DestinationInfo {
-    // 标准化目的地名称 - 移除常见的动词后缀
-    const normalizedName = name
+    // 标准化目的地名称 - 移除常见的动词后缀和中间的旅游词汇
+    let normalizedName = name
       .replace(/[玩游览旅游参观]$/, '') // 移除末尾的动词
       .replace(/[，。！？\s]+$/, '') // 移除末尾的标点和空格
+      .replace(/旅游?/, '') // 移除中间的"旅"或"旅游"
+      .replace(/游玩?/, '') // 移除中间的"游"或"游玩"
       .trim();
     
     console.log('🔧 Creating destination info, normalized from', name, 'to', normalizedName);
@@ -353,6 +355,14 @@ class DestinationContextManager {
         coordinates: { lat: 29.8683, lng: 121.5440 },
         radius: 50,
         aliases: ['Ningbo', '宁波市', 'ningbo']
+      },
+      '潮汕': {
+        name: '潮汕',
+        country: '中国',
+        region: '广东省',
+        coordinates: { lat: 23.3540, lng: 116.6819 },
+        radius: 60,
+        aliases: ['Chaoshan', '潮州', '汕头', 'chaoshan']
       },
       '清迈': {
         name: '清迈',

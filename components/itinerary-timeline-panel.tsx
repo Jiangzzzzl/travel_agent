@@ -49,43 +49,11 @@ export function ItineraryTimelinePanel({ forceVisible = false }: { forceVisible?
   // 在规划页面中，可以通过 forceVisible 强制显示面板
   const isVisible = (conversation.length > 0 || forceVisible) && !isPanelCollapsed;
 
-  // 监听对话变化，自动检测目的地
+  // 简化：完全依赖AI生成的destinationHero组件来设置目的地
+  // 不再进行重复的对话历史解析
   useEffect(() => {
-    console.log('🔍 ItineraryPanel: Conversation changed, length:', conversation.length);
-    console.log('🔍 ItineraryPanel: Current destination from hook:', destination);
-    
-    if (conversation.length > 0 && !destination) {
-      console.log('🔍 ItineraryPanel: Auto-detecting destination from conversation...');
-      
-      // 从最新的用户消息开始检测
-      for (let i = conversation.length - 1; i >= 0; i--) {
-        const message = conversation[i];
-        if (message && message.role === 'user') {
-          // 优先使用 text 属性，然后是 content
-          const messageText = message.text || message.content || '';
-          console.log(`🔍 ItineraryPanel: Message ${i} properties:`, {
-            text: message.text,
-            content: message.content,
-            display: typeof message.display,
-            messageText: messageText
-          });
-          
-          if (typeof messageText === 'string' && messageText.trim()) {
-            console.log(`🔍 ItineraryPanel: Checking message ${i}: "${messageText}"`);
-            
-            // 使用目的地上下文的检测功能
-            const detected = destinationContext.detectAndSetDestination(messageText);
-            if (detected) {
-              console.log('✅ ItineraryPanel: Auto-detected destination:', detected.name);
-              break;
-            }
-          }
-        }
-      }
-    } else if (destination) {
-      console.log('✅ ItineraryPanel: Destination already set:', destination.name);
-    }
-  }, [conversation, destination]);
+    console.log('🔍 ItineraryPanel: Destination context updated:', destination?.name || 'None');
+  }, [destination]);
 
   useEffect(() => {
     setDayPlans(itineraryStore.getAllDayPlans());
@@ -904,20 +872,9 @@ Please ensure the generated itinerary completely follows my day allocation, with
                       destinationContext.clearDestination();
                       setSearchResults([]); // 清空搜索结果
                     } else {
-                      // 尝试从对话历史中检测目的地
-                      for (let i = conversation.length - 1; i >= 0; i--) {
-                        const message = conversation[i];
-                        if (message && message.role === 'user') {
-                          // 优先使用 text 属性，然后是 content
-                          const messageText = message.text || message.content || '';
-                          if (typeof messageText === 'string') {
-                            const detected = destinationContext.detectAndSetDestination(messageText);
-                            if (detected) {
-                              break;
-                            }
-                          }
-                        }
-                      }
+                      // 简化：不再进行复杂的对话历史检测
+                      // 用户可以通过重新提问来让AI设置目的地
+                      console.log('💡 No destination set. User can ask a new question to set destination via AI.');
                     }
                   }}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
