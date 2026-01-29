@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, MapPin, X, GripVertical, Plus, Minus, Sparkles, Clock, Copy, Lock, RefreshCw, Search, Edit3, Check, XIcon } from 'lucide-react';
 import { itineraryStore, DayPlan, ItineraryAttraction } from '@/lib/itinerary-store';
+import { attractionStore } from '@/lib/attraction-store';
 import { intelligentAttractionAnalysis, intelligentAttractionAnalysisSync } from '@/lib/attraction-intelligence';
 import { searchAttractionsWithGemini, getSmartRecommendations, GeminiAttractionSearch } from '@/lib/gemini-itinerary-service';
 import { destinationContext, useDestinationContext } from '@/lib/destination-context';
@@ -1207,7 +1208,11 @@ Please ensure the generated itinerary completely follows my day allocation, with
               Generate Itinerary
             </button>
             <button
-              onClick={() => itineraryStore.clear()}
+              onClick={() => {
+                itineraryStore.clear();
+                // 同时清空收藏状态，确保爱心变回灰色
+                attractionStore.clear();
+              }}
               disabled={totalAttractions === 0}
               className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 font-medium rounded-md transition-colors text-sm"
             >
