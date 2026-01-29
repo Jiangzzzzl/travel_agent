@@ -49,18 +49,17 @@ export default function TravelAgentPage() {
     }
   }, [conversation]);
 
-  // 检测是否是地点搜索
+  // 检测是否是地点搜索 - 更精确的判断，避免拦截正常的旅游查询
   const isPlaceSearch = (text: string) => {
-    const placeKeywords = [
+    // 只有非常具体的景点名称才跳转到规划页面
+    // 一般的旅游查询应该让AI处理
+    const specificPlaceKeywords = [
       '故宫', '天安门', '长城', '西湖', '外滩', '东方明珠', '兵马俑', '大雁塔',
-      '北京', '上海', '杭州', '西安', '广州', '深圳', '成都', '重庆',
-      '巴黎', '伦敦', '纽约', '东京', '首尔', '曼谷', '新加坡',
-      'beijing', 'shanghai', 'hangzhou', 'xian', 'paris', 'london', 'tokyo',
-      '想去', '旅游', '旅行', '游览', '参观', '景点'
+      // 移除通用的城市名和旅游词汇，让AI来处理这些查询
     ];
     
     const lowerText = text.toLowerCase();
-    return placeKeywords.some(keyword => lowerText.includes(keyword.toLowerCase()));
+    return specificPlaceKeywords.some(keyword => lowerText.includes(keyword.toLowerCase()));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,8 +76,11 @@ export default function TravelAgentPage() {
 
     const userInput = input;
     
-    // 检测是否是地点搜索，如果是就跳转到规划页面
-    if (isPlaceSearch(userInput)) {
+    // 暂时禁用地点搜索跳转，让所有查询都通过AI处理
+    // 这样可以确保destinationHero组件被正确生成
+    const shouldRedirectToPlanning = false; // isPlaceSearch(userInput);
+    
+    if (shouldRedirectToPlanning) {
       console.log('🗺️ Detected place search, redirecting to planning page...');
       // 将搜索内容存储到 localStorage，以便在规划页面使用
       localStorage.setItem('travelQuery', userInput);
