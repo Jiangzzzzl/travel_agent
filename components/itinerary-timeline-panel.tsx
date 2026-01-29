@@ -260,6 +260,13 @@ export function ItineraryTimelinePanel({ forceVisible = false }: { forceVisible?
       console.log('⚠️ No destination provided to getPredefinedResults');
     }
     
+    // 澳门景点搜索 - 强制使用API，不使用预定义结果
+    if (normalizedDestination === '澳门') {
+      console.log('🏛️ Macau destination detected - skipping predefined results, will use API search');
+      // 直接返回空结果，强制使用API搜索
+      return [];
+    }
+    
     // 博物馆结果
     if (queryLower.includes('博物馆') || queryLower.includes('museum')) {
       console.log('🏛️ Processing museum query...');

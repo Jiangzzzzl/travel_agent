@@ -99,8 +99,8 @@ class DestinationContextManager {
     
     // 特殊处理：直接检查是否包含已知城市名
     const knownCities = [
-      '北京', '上海', '西安', '杭州', '成都', '大理', '宁波', '潮汕', '清迈', '东京', '巴黎', '伦敦', '纽约',
-      'Beijing', 'Shanghai', 'Xi An', 'Hangzhou', 'Chengdu', 'Dali', 'Ningbo', 'Chiang Mai', 
+      '北京', '上海', '西安', '杭州', '成都', '大理', '宁波', '潮汕', '澳门', '清迈', '东京', '巴黎', '伦敦', '纽约',
+      'Beijing', 'Shanghai', 'Xi An', 'Hangzhou', 'Chengdu', 'Dali', 'Ningbo', 'Chaoshan', 'Macau', 'Chiang Mai', 
       'Tokyo', 'Paris', 'London', 'New York', 'Santorini'
     ];
     
@@ -193,7 +193,7 @@ class DestinationContextManager {
    */
   private hasOtherCityMention(text: string, currentCity: string): boolean {
     const knownCities = [
-      '北京', '上海', '西安', '杭州', '成都', '大理', '清迈', '东京', '巴黎', '伦敦', '纽约', '宁波', '潮汕',
+      '北京', '上海', '西安', '杭州', '成都', '大理', '清迈', '东京', '巴黎', '伦敦', '纽约', '宁波', '潮汕', '澳门',
       'Beijing', 'Shanghai', 'Xi An', 'Hangzhou', 'Chengdu', 'Dali', 'Chiang Mai', 
       'Tokyo', 'Paris', 'London', 'New York', 'Ningbo', 'Santorini'
     ];
