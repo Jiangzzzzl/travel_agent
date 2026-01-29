@@ -40,9 +40,11 @@ export function ItineraryTimelinePanel({ forceVisible = false }: { forceVisible?
   // 使用目的地上下文 - 始终执行，不管面板是否可见
   const { destination, buildRestrictedQuery, isInDestination } = useDestinationContext();
   
-  // 添加调试信息
+  // 添加详细的调试信息
   useEffect(() => {
-    console.log('🔗 ItineraryPanel: useDestinationContext hook initialized, destination:', destination?.name);
+    console.log('🔗 ItineraryPanel: useDestinationContext hook initialized');
+    console.log('🔗 ItineraryPanel: Current destination:', destination?.name || 'None');
+    console.log('🔗 ItineraryPanel: Destination object:', destination);
   }, [destination]);
   
   // 只有在用户开始对话后才显示面板，并且考虑折叠状态

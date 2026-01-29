@@ -211,11 +211,16 @@ export function parseJSONComponents(content: string): ParsedResponse {
         destination = comp.destination;
         // 直接设置目的地上下文，不进行重新检测
         console.log('🎯 ParseJSON: Found destinationHero with destination:', destination);
-        console.log('🎯 ParseJSON: Calling setDestinationDirect...');
+        console.log('🎯 ParseJSON: About to call setDestinationDirect...');
+        
+        // 检查当前监听器数量
+        console.log('🎯 ParseJSON: Current listener count before setting:', destinationContext.getListenerCount());
+        
         destinationContext.setDestinationDirect(destination);
+        
         console.log('🎯 ParseJSON: setDestinationDirect completed');
         console.log('🎯 ParseJSON: Current destination after setting:', destinationContext.getCurrentDestination()?.name);
-        console.log('🎯 ParseJSON: Current listener count:', destinationContext.getListenerCount());
+        console.log('🎯 ParseJSON: Current listener count after setting:', destinationContext.getListenerCount());
       }
       if (comp.type === 'attraction') {
         hasAttractions = true;
