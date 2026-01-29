@@ -543,6 +543,7 @@ REMEMBER:
         }
         
         // 当 done=true 时，解析内容并返回最终UI，但不在这里调用 aiState.done()
+        console.log('🎨 StreamUI: Processing final response, calling parseJSONComponents...');
         const { components, text } = parseJSONComponents(content);
         
         console.log('🎨 Parsed result:', {
