@@ -1,4 +1,5 @@
 import { google } from '@ai-sdk/google';
+import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -11,9 +12,10 @@ export async function GET() {
       GLOBAL_AGENT_HTTPS_PROXY: process.env.GLOBAL_AGENT_HTTPS_PROXY,
     });
     
-    const model = google('gemini-1.5-flash');
+    const model = google('gemini-2.5-flash');
     
-    const result = await model.generateText({
+    const result = await generateText({
+      model,
       prompt: 'Say hello in Chinese',
       maxTokens: 50,
     });
