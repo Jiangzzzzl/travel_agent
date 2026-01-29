@@ -150,7 +150,8 @@ function processNonAttractionComponent(comp: ComponentData, idx: number, compone
 }
 
 export function parseJSONComponents(content: string): ParsedResponse {
-  console.log('🔍 Parsing JSON components from:', content.substring(0, 200));
+  console.log('🔍 ParseJSON: parseJSONComponents called with content length:', content.length);
+  console.log('🔍 ParseJSON: Content preview:', content.substring(0, 200));
   
   // 首先检查是否是纯文本响应（不是JSON格式）
   const trimmedContent = content.trim();
@@ -190,8 +191,9 @@ export function parseJSONComponents(content: string): ParsedResponse {
     const components: React.ReactNode[] = [];
     
     if (!data.components || !Array.isArray(data.components)) {
-      console.warn('⚠️ No components array found in JSON');
-      console.warn('⚠️ Data structure:', Object.keys(data));
+      console.warn('⚠️ ParseJSON: No components array found in JSON');
+      console.warn('⚠️ ParseJSON: Data structure:', Object.keys(data));
+      console.warn('⚠️ ParseJSON: Full data:', data);
       return { components: [], text: content };
     }
     
