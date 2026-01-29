@@ -526,7 +526,8 @@ REMEMBER:
         console.log('📝 Text response received:', { 
           contentLength: content.length, 
           done,
-          preview: content.substring(0, 100) 
+          preview: content.substring(0, 200),
+          fullContent: content // 临时添加，用于调试
         });
         
         if (!done) {
