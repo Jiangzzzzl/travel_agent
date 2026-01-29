@@ -124,11 +124,33 @@ export async function getRouteWithGemini(query: RouteQuery): Promise<RouteRespon
     
     if (result.object.routes && result.object.routes.length > 0) {
       const route = result.object.routes[0];
+      
       return {
-        duration: route.duration,
-        distance: route.distance,
-        steps: route.steps,
-        trafficInfo: route.trafficInfo
+        duration: {
+          text: route.duration?.text || '未知时间',
+          value: route.duration?.value || 0
+        },
+        distance: {
+          text: route.distance?.text || '未知距离', 
+          value: route.distance?.value || 0
+        },
+        steps: route.steps?.map(step => ({
+          instruction: step.instruction || '',
+          duration: {
+            text: step.duration?.text || '0分钟',
+            value: step.duration?.value || 0
+          },
+          distance: {
+            text: step.distance?.text || '0米',
+            value: step.distance?.value || 0
+          },
+          travelMode: step.travelMode || 'DRIVE'
+        })),
+        trafficInfo: route.trafficInfo ? {
+          currentTravelTime: route.trafficInfo.currentTravelTime || 0,
+          historicalAverage: route.trafficInfo.historicalAverage || 0,
+          trafficCondition: route.trafficInfo.trafficCondition || 'LIGHT'
+        } : undefined
       };
     }
     
@@ -184,10 +206,31 @@ ${queries.map((query, index) => `
     
     if (result.object.routes) {
       return result.object.routes.map(route => ({
-        duration: route.duration,
-        distance: route.distance,
-        steps: route.steps,
-        trafficInfo: route.trafficInfo
+        duration: {
+          text: route.duration?.text || '未知时间',
+          value: route.duration?.value || 0
+        },
+        distance: {
+          text: route.distance?.text || '未知距离',
+          value: route.distance?.value || 0
+        },
+        steps: route.steps?.map(step => ({
+          instruction: step.instruction || '',
+          duration: {
+            text: step.duration?.text || '0分钟',
+            value: step.duration?.value || 0
+          },
+          distance: {
+            text: step.distance?.text || '0米',
+            value: step.distance?.value || 0
+          },
+          travelMode: step.travelMode || 'DRIVE'
+        })),
+        trafficInfo: route.trafficInfo ? {
+          currentTravelTime: route.trafficInfo.currentTravelTime || 0,
+          historicalAverage: route.trafficInfo.historicalAverage || 0,
+          trafficCondition: route.trafficInfo.trafficCondition || 'LIGHT'
+        } : undefined
       }));
     }
     
