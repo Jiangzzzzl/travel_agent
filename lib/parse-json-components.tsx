@@ -211,18 +211,9 @@ export function parseJSONComponents(content: string): ParsedResponse {
       
       if (comp.type === 'destinationHero' && comp.destination) {
         destination = comp.destination;
-        // 直接设置目的地上下文，不进行重新检测
+        // 目的地设置现在在客户端处理（actions.tsx中）
         console.log('🎯 ParseJSON: Found destinationHero with destination:', destination);
-        console.log('🎯 ParseJSON: About to call setDestinationDirect...');
-        
-        // 检查当前监听器数量
-        console.log('🎯 ParseJSON: Current listener count before setting:', destinationContext.getListenerCount());
-        
-        destinationContext.setDestinationDirect(destination);
-        
-        console.log('🎯 ParseJSON: setDestinationDirect completed');
-        console.log('🎯 ParseJSON: Current destination after setting:', destinationContext.getCurrentDestination()?.name);
-        console.log('🎯 ParseJSON: Current listener count after setting:', destinationContext.getListenerCount());
+        console.log('🎯 ParseJSON: Destination will be set on client side');
       }
       if (comp.type === 'attraction') {
         hasAttractions = true;

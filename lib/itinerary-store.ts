@@ -351,66 +351,145 @@ class ItineraryStore {
     if (!this.useSmartPlanning) return;
 
     try {
+      console.log('🔄 Starting reoptimization...');
+      
       // 收集所有需要优化的景点（排除被手动移动的景点）
       const attractionsToOptimize: AttractionWithMetrics[] = [];
       const manuallyMovedAttractions: Map<number, AttractionWithMetrics[]> = new Map();
+      const lockedDayAttractions: Map<number, AttractionWithMetrics[]> = new Map();
+      
+      // 统计当前状态
+      let totalAttractions = 0;
+      let manuallyMovedCount = 0;
+      let lockedDayCount = 0;
       
       for (let i = 1; i <= this.totalDays; i++) {
         const dayAttractions = this.dayPlans.get(i) || [];
+        totalAttractions += dayAttractions.length;
+        
         const manualAttractions: AttractionWithMetrics[] = [];
+        const lockedAttractions: AttractionWithMetrics[] = [];
         
         for (const attraction of dayAttractions) {
           if (smartItineraryPlanner.isAttractionManuallyMoved(attraction.id)) {
             // 保留被手动移动的景点在原位置
             manualAttractions.push(attraction);
+            manuallyMovedCount++;
             console.log(`🔒 Preserving manually moved attraction: ${attraction.name} in day ${i}`);
-          } else if (!smartItineraryPlanner.isDayManuallyAdjusted(i)) {
+          } else if (smartItineraryPlanner.isDayManuallyAdjusted(i)) {
+            // 天数被锁定的景点也保留在原位置
+            lockedAttractions.push(attraction);
+            lockedDayCount++;
+            console.log(`🔒 Preserving locked day attraction: ${attraction.name} in day ${i}`);
+          } else {
             // 只有在天数未被锁定且景点未被手动移动时才加入优化列表
             attractionsToOptimize.push(attraction);
-          } else {
-            // 天数被锁定的景点也保留在原位置
-            manualAttractions.push(attraction);
+            console.log(`🔄 Adding to optimization: ${attraction.name} from day ${i}`);
           }
         }
         
         if (manualAttractions.length > 0) {
           manuallyMovedAttractions.set(i, manualAttractions);
         }
-      }
-
-      console.log(`🔄 Optimizing ${attractionsToOptimize.length} attractions, preserving ${Array.from(manuallyMovedAttractions.values()).flat().length} manual attractions`);
-
-      // 如果没有需要优化的景点，直接返回
-      if (attractionsToOptimize.length === 0) {
-        console.log('✅ No attractions to optimize');
-        return;
-      }
-
-      // 先清空未锁定的天数，但保留手动移动的景点
-      for (let i = 1; i <= this.totalDays; i++) {
-        if (!smartItineraryPlanner.isDayManuallyAdjusted(i)) {
-          this.dayPlans.set(i, manuallyMovedAttractions.get(i) || []);
+        if (lockedAttractions.length > 0) {
+          lockedDayAttractions.set(i, lockedAttractions);
         }
       }
 
+      console.log(`📊 Reoptimization stats:`);
+      console.log(`  - Total attractions: ${totalAttractions}`);
+      console.log(`  - To optimize: ${attractionsToOptimize.length}`);
+      console.log(`  - Manually moved: ${manuallyMovedCount}`);
+      console.log(`  - In locked days: ${lockedDayCount}`);
+
+      // 如果没有需要优化的景点，直接返回
+      if (attractionsToOptimize.length === 0) {
+        console.log('✅ No attractions to optimize - all are locked or manually moved');
+        return;
+      }
+
+      // 创建当前状态的备份（用于验证）
+      const backupPlans = new Map<number, AttractionWithMetrics[]>();
+      for (let i = 1; i <= this.totalDays; i++) {
+        backupPlans.set(i, [...(this.dayPlans.get(i) || [])]);
+      }
+
+      // 先清空未锁定的天数，但保留手动移动的景点和锁定天数的景点
+      for (let i = 1; i <= this.totalDays; i++) {
+        const preservedAttractions = [
+          ...(manuallyMovedAttractions.get(i) || []),
+          ...(lockedDayAttractions.get(i) || [])
+        ];
+        this.dayPlans.set(i, preservedAttractions);
+        console.log(`🔄 Day ${i} reset with ${preservedAttractions.length} preserved attractions`);
+      }
+
       // 执行智能规划（只规划未锁定的景点）
+      console.log(`🤖 Calling planItinerary with ${attractionsToOptimize.length} attractions...`);
       const schedule = await smartItineraryPlanner.planItinerary(
         attractionsToOptimize,
         this.totalDays,
         this.dayPlans
       );
 
-      // 更新行程（只更新未被手动调整的天数，并合并手动移动的景点）
-      for (const daySchedule of schedule) {
-        if (!daySchedule.isManuallyAdjusted) {
-          const manualAttractions = manuallyMovedAttractions.get(daySchedule.day) || [];
-          const optimizedAttractions = daySchedule.attractions.filter(attr => 
-            !smartItineraryPlanner.isAttractionManuallyMoved(attr.id)
-          );
-          
-          // 合并手动移动的景点和优化后的景点
-          this.dayPlans.set(daySchedule.day, [...manualAttractions, ...optimizedAttractions]);
+      console.log(`📋 Received schedule with ${schedule.length} days`);
+
+      // 验证所有景点都被分配了
+      const scheduledAttractionIds = new Set<string>();
+      schedule.forEach(daySchedule => {
+        daySchedule.attractions.forEach(attr => {
+          scheduledAttractionIds.add(attr.id);
+        });
+      });
+
+      const missingAttractions = attractionsToOptimize.filter(attr => 
+        !scheduledAttractionIds.has(attr.id)
+      );
+
+      if (missingAttractions.length > 0) {
+        console.error(`❌ Missing attractions after optimization:`, missingAttractions.map(a => a.name));
+        
+        // 恢复备份
+        for (let i = 1; i <= this.totalDays; i++) {
+          this.dayPlans.set(i, backupPlans.get(i) || []);
         }
+        console.log('🔄 Restored backup due to missing attractions');
+        this.notifyListeners();
+        return;
+      }
+
+      // 更新行程（合并所有类型的景点）
+      for (const daySchedule of schedule) {
+        const manualAttractions = manuallyMovedAttractions.get(daySchedule.day) || [];
+        const lockedAttractions = lockedDayAttractions.get(daySchedule.day) || [];
+        const optimizedAttractions = daySchedule.attractions.filter(attr => 
+          !smartItineraryPlanner.isAttractionManuallyMoved(attr.id) &&
+          !smartItineraryPlanner.isDayManuallyAdjusted(daySchedule.day)
+        );
+        
+        // 合并所有类型的景点：手动移动的 + 锁定天数的 + 优化后的
+        const finalAttractions = [...manualAttractions, ...lockedAttractions, ...optimizedAttractions];
+        this.dayPlans.set(daySchedule.day, finalAttractions);
+        
+        console.log(`✅ Day ${daySchedule.day} final: ${finalAttractions.length} attractions (${manualAttractions.length} manual + ${lockedAttractions.length} locked + ${optimizedAttractions.length} optimized)`);
+      }
+
+      // 最终验证：确保没有丢失任何景点
+      let finalTotalAttractions = 0;
+      for (let i = 1; i <= this.totalDays; i++) {
+        finalTotalAttractions += (this.dayPlans.get(i) || []).length;
+      }
+
+      if (finalTotalAttractions !== totalAttractions) {
+        console.error(`❌ Attraction count mismatch! Before: ${totalAttractions}, After: ${finalTotalAttractions}`);
+        
+        // 恢复备份
+        for (let i = 1; i <= this.totalDays; i++) {
+          this.dayPlans.set(i, backupPlans.get(i) || []);
+        }
+        console.log('🔄 Restored backup due to count mismatch');
+      } else {
+        console.log(`✅ Reoptimization completed successfully! Total attractions preserved: ${finalTotalAttractions}`);
       }
 
       this.notifyListeners();

@@ -3,6 +3,7 @@ import { google } from '@ai-sdk/google';
 import { nanoid } from 'nanoid';
 import { MarkdownContent } from '@/components/markdown-content';
 import { parseJSONComponents } from '@/lib/parse-json-components';
+import { DestinationSetter } from '@/components/destination-setter';
 
 // Vercel 兼容的代理设置
 if (typeof window === 'undefined' && !process.env.VERCEL) {
@@ -233,6 +234,8 @@ async function submitUserMessage(content: string) {
   console.log('🚀 Starting streamUI...');
   
   try {
+    console.log('🚀 Starting streamUI...');
+    
     const result = await streamUI({
       model: getModel(),
       initial: <div className="text-slate-500 animate-pulse">Planning your journey...</div>,
@@ -523,11 +526,11 @@ REMEMBER:
 - Be creative and flexible with component selection!`,
       messages: aiState.get(),
       text: ({ content, done }) => {
-        console.log('📝 Text response received:', { 
+        console.log('📝 StreamUI text callback called:', { 
           contentLength: content.length, 
           done,
           preview: content.substring(0, 200),
-          fullContent: content // 临时添加，用于调试
+          fullContent: done ? content : '[streaming...]' // 只在完成时显示完整内容
         });
         
         if (!done) {
@@ -545,6 +548,7 @@ REMEMBER:
         
         // 当 done=true 时，解析内容并返回最终UI，但不在这里调用 aiState.done()
         console.log('🎨 StreamUI: Processing final response, calling parseJSONComponents...');
+        console.log('🎨 StreamUI: Full AI response content:', content);
         const { components, text } = parseJSONComponents(content);
         
         console.log('🎨 Parsed result:', {
@@ -552,10 +556,39 @@ REMEMBER:
           hasText: !!text,
         });
         
+        // 提取目的地信息，但不在这里设置，而是通过props传递给组件
+        let extractedDestination = null;
+        try {
+          // 清理markdown代码块标记
+          let cleanContent = content.trim();
+          cleanContent = cleanContent.replace(/```json\s*/g, '');
+          cleanContent = cleanContent.replace(/```javascript\s*/g, '');
+          cleanContent = cleanContent.replace(/```tool_code\s*/g, '');
+          cleanContent = cleanContent.replace(/```\s*$/g, '');
+          cleanContent = cleanContent.replace(/^```\s*/g, '');
+          cleanContent = cleanContent.trim();
+          
+          const data = JSON.parse(cleanContent);
+          if (data.components && Array.isArray(data.components)) {
+            const destinationHero = data.components.find((comp: any) => comp.type === 'destinationHero');
+            if (destinationHero && destinationHero.destination) {
+              extractedDestination = destinationHero.destination;
+              console.log('🎯 Client: Extracted destination for later setting:', extractedDestination);
+            }
+          }
+        } catch (error) {
+          console.warn('⚠️ Client: Failed to parse content for destination extraction:', error);
+        }
+        
         const themeColor = getThemeColorFromContent(content);
         
         return (
           <div className="space-y-6">
+            {/* 目的地设置组件 - 在客户端设置目的地 */}
+            {extractedDestination && (
+              <DestinationSetter destination={extractedDestination} />
+            )}
+            
             <div className="space-y-6">
               {components.map((comp, idx) => (
                 <div key={idx} className="animate-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
@@ -589,7 +622,7 @@ REMEMBER:
       },
     });
 
-    console.log('✅ StreamUI completed successfully');
+    console.log('✅ StreamUI completed successfully, result:', result);
     
     // 手动调用 aiState.done() 来解决警告
     aiState.done([

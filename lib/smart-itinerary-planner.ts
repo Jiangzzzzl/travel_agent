@@ -339,6 +339,9 @@ class SmartItineraryPlanner {
     totalDays: number,
     existingSchedule?: Map<number, AttractionWithMetrics[]>
   ): Promise<DaySchedule[]> {
+    console.log(`🎯 planItinerary called with ${attractions.length} attractions for ${totalDays} days`);
+    console.log(`🎯 Input attractions: ${attractions.map(a => a.name).join(', ')}`);
+    
     // 初始化每日行程
     const schedule: DaySchedule[] = [];
     for (let i = 1; i <= totalDays; i++) {
@@ -352,11 +355,14 @@ class SmartItineraryPlanner {
         isManuallyAdjusted: this.manuallyAdjustedDays.has(i),
         routeInfo: await this.generateRouteInfo(existingAttractions)
       });
+      console.log(`📅 Day ${i} initialized with ${existingAttractions.length} existing attractions`);
     }
 
     // 分离全天景点和普通景点
     const fullDayAttractions = attractions.filter(attr => this.isFullDayAttraction(attr));
     const regularAttractions = attractions.filter(attr => !this.isFullDayAttraction(attr));
+    
+    console.log(`🔄 Separated attractions: ${fullDayAttractions.length} full-day, ${regularAttractions.length} regular`);
     
     // 按优先级排序，优先级相同时按 ID 排序以保证稳定性
     const sortedFullDayAttractions = [...fullDayAttractions].sort((a, b) => {
@@ -377,6 +383,9 @@ class SmartItineraryPlanner {
       return a.id.localeCompare(b.id);
     });
 
+    console.log(`🎯 Sorted full-day attractions: ${sortedFullDayAttractions.map(a => a.name).join(', ')}`);
+    console.log(`🎯 Sorted regular attractions: ${sortedRegularAttractions.map(a => a.name).join(', ')}`);
+
     // 首先分配全天景点
     for (const attraction of sortedFullDayAttractions) {
       const bestDay = await this.findBestDay(attraction, schedule);
@@ -384,12 +393,15 @@ class SmartItineraryPlanner {
         schedule[bestDay - 1].attractions.push(attraction);
         await this.updateDaySchedule(schedule[bestDay - 1]);
         console.log(`🎯 Initial assignment: full-day ${attraction.name} to day ${bestDay}`);
+      } else {
+        console.warn(`⚠️ Could not assign full-day attraction: ${attraction.name}`);
       }
     }
 
     // 然后分配普通景点 - 使用轮询方式确保均匀分配
     console.log(`🔄 Starting round-robin assignment for ${sortedRegularAttractions.length} regular attractions`);
     
+    let assignedCount = 0;
     for (let i = 0; i < sortedRegularAttractions.length; i++) {
       const attraction = sortedRegularAttractions[i];
       
@@ -411,6 +423,7 @@ class SmartItineraryPlanner {
         if (newDuration <= this.MAX_DAILY_HOURS * 60) {
           targetDay.attractions.push(attraction);
           await this.updateDaySchedule(targetDay);
+          assignedCount++;
           console.log(`🎯 Round-robin initial assignment: ${attraction.name} (${i}) -> day ${targetDay.day} (index ${targetDayIndex})`);
         } else {
           // 如果轮询的天数时间不够，使用原来的findBestDay方法
@@ -418,7 +431,10 @@ class SmartItineraryPlanner {
           if (bestDay !== -1) {
             schedule[bestDay - 1].attractions.push(attraction);
             await this.updateDaySchedule(schedule[bestDay - 1]);
+            assignedCount++;
             console.log(`🎯 Fallback assignment: ${attraction.name} to day ${bestDay} (time constraint)`);
+          } else {
+            console.warn(`⚠️ Could not assign regular attraction: ${attraction.name}`);
           }
         }
       } else {
@@ -427,13 +443,57 @@ class SmartItineraryPlanner {
         if (bestDay !== -1) {
           schedule[bestDay - 1].attractions.push(attraction);
           await this.updateDaySchedule(schedule[bestDay - 1]);
+          assignedCount++;
           console.log(`🎯 Fallback assignment: ${attraction.name} to day ${bestDay} (no available days)`);
+        } else {
+          console.warn(`⚠️ Could not assign regular attraction: ${attraction.name}`);
+        }
+      }
+    }
+
+    console.log(`📊 Assignment summary: ${assignedCount}/${attractions.length} attractions assigned`);
+
+    // 验证所有景点都被分配了
+    const scheduledAttractionIds = new Set<string>();
+    schedule.forEach(daySchedule => {
+      daySchedule.attractions.forEach(attr => {
+        scheduledAttractionIds.add(attr.id);
+      });
+    });
+
+    const missingAttractions = attractions.filter(attr => !scheduledAttractionIds.has(attr.id));
+    if (missingAttractions.length > 0) {
+      console.error(`❌ Missing attractions after planItinerary:`, missingAttractions.map(a => a.name));
+      
+      // 尝试强制分配缺失的景点到第一个可用天数
+      for (const missingAttraction of missingAttractions) {
+        const availableDays = schedule.filter(day => !day.isManuallyAdjusted);
+        if (availableDays.length > 0) {
+          const targetDay = availableDays[0];
+          targetDay.attractions.push(missingAttraction);
+          await this.updateDaySchedule(targetDay);
+          console.log(`🔧 Force-assigned missing attraction: ${missingAttraction.name} to day ${targetDay.day}`);
         }
       }
     }
 
     // 后处理：重新平衡景点分配
     await this.rebalanceSchedule(schedule);
+
+    // 最终验证
+    const finalScheduledIds = new Set<string>();
+    schedule.forEach(daySchedule => {
+      daySchedule.attractions.forEach(attr => {
+        finalScheduledIds.add(attr.id);
+      });
+    });
+
+    const finalMissingAttractions = attractions.filter(attr => !finalScheduledIds.has(attr.id));
+    if (finalMissingAttractions.length > 0) {
+      console.error(`❌ Still missing attractions after rebalancing:`, finalMissingAttractions.map(a => a.name));
+    } else {
+      console.log(`✅ All ${attractions.length} attractions successfully assigned`);
+    }
 
     return schedule;
   }
@@ -552,9 +612,44 @@ class SmartItineraryPlanner {
               const minDay = availableDays.reduce((min, day) => 
                 day.attractions.length < min.attractions.length ? day : min
               );
-              minDay.attractions = [attraction]; // 替换现有景点
+              // Don't replace existing attractions, just add the full-day attraction
+              // But first, move existing attractions to other days if possible
+              const existingAttractions = [...minDay.attractions];
+              minDay.attractions = [attraction]; // Set the full-day attraction
               await this.updateDaySchedule(minDay);
-              console.log(`🎯 Replaced attractions in day ${minDay.day} with full-day attraction ${attraction.name}`);
+              console.log(`🎯 Assigned full-day attraction ${attraction.name} to day ${minDay.day}, moving ${existingAttractions.length} existing attractions`);
+              
+              // Try to relocate the displaced attractions
+              for (const displacedAttraction of existingAttractions) {
+                const otherAvailableDays = nonManualDays.filter(day => 
+                  day.day !== minDay.day &&
+                  !day.attractions.some(attr => this.isFullDayAttraction(attr))
+                );
+                
+                if (otherAvailableDays.length > 0) {
+                  // Find the day with the least attractions
+                  const targetDay = otherAvailableDays.reduce((min, day) => 
+                    day.attractions.length < min.attractions.length ? day : min
+                  );
+                  
+                  const newDuration = targetDay.totalDuration + this.parseDuration(displacedAttraction.estimatedDuration);
+                  if (newDuration <= this.MAX_DAILY_HOURS * 60) {
+                    targetDay.attractions.push(displacedAttraction);
+                    await this.updateDaySchedule(targetDay);
+                    console.log(`🔄 Relocated displaced attraction ${displacedAttraction.name} to day ${targetDay.day}`);
+                  } else {
+                    // If no suitable day found, add back to the original day (this shouldn't happen often)
+                    minDay.attractions.push(displacedAttraction);
+                    await this.updateDaySchedule(minDay);
+                    console.log(`⚠️ Could not relocate ${displacedAttraction.name}, keeping with full-day attraction`);
+                  }
+                } else {
+                  // If no other days available, keep with the full-day attraction
+                  minDay.attractions.push(displacedAttraction);
+                  await this.updateDaySchedule(minDay);
+                  console.log(`⚠️ No other days available for ${displacedAttraction.name}, keeping with full-day attraction`);
+                }
+              }
             }
           }
         } else {
