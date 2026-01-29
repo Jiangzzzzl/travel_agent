@@ -286,6 +286,20 @@ EXAMPLE ATTRACTION COUNTS (FOLLOW EXACTLY):
 - 巴黎景点推荐: 埃菲尔铁塔, 卢浮宫, 凯旋门, 圣母院, 香榭丽舍大街, 圣心大教堂, 塞纳河游船, 凡尔赛宫, 奥赛博物馆, 拉丁区, 蒙马特高地, 巴黎歌剧院 (12个)
 - 东京景点推荐: 浅草寺, 东京塔, 皇居, 新宿, 涩谷, 银座, 上野公园, 明治神宫, 秋叶原, 筑地市场, 东京迪士尼, 六本木 (12个)
 
+MANDATORY INFO COMPONENT EXAMPLES (ALWAYS include meaningful content):
+{
+  "type": "info",
+  "title": "Best Time to Visit",
+  "content": "春季3-5月是最佳旅游季节，气候温和，樱花盛开，但游客较多，建议提前预订酒店。秋季9-11月也是不错的选择，天气凉爽，红叶满山。",
+  "infoType": "tip"
+},
+{
+  "type": "info", 
+  "title": "Local Delicacies",
+  "content": "当地特色美食包括肉夹馍、凉皮、羊肉泡馍等，推荐到回民街品尝正宗小吃。晚上可以去大唐不夜城感受盛唐文化，品尝各种陕西美食。",
+  "infoType": "highlight"
+}
+
 COUNT VERIFICATION: Before responding, count your attraction components. If less than 10, add more attractions!
 
 IMPORTANT: You must respond with VALID JSON in this exact format:
@@ -457,6 +471,16 @@ COMPONENT TYPES (choose based on question):
 5. quote - Quote cards (text, author) - Use for famous sayings, local proverbs
 6. activities - Activity showcase (for "活动" / "体验" questions)
 7. itinerary - Multi-day plans (for "X天" / "行程" questions, MUST match exact days)
+
+CRITICAL INFO COMPONENT RULES:
+- NEVER generate info components with empty "content" field
+- Each info component MUST have meaningful, specific content (minimum 10 words)
+- Examples of GOOD info content:
+  * tip: "春季3-5月是最佳旅游季节，气候温和，樱花盛开，但游客较多，建议提前预订酒店"
+  * highlight: "当地特色美食包括肉夹馍、凉皮、羊肉泡馍，推荐到回民街品尝正宗小吃"
+  * time: "大部分景点9:00-17:00开放，建议上午早点出发避开人流高峰"
+  * budget: "日均消费约300-500元，包含门票、餐饮和交通，住宿另计"
+  * crowd: "周末和节假日游客较多，建议工作日前往，体验更佳"
 
 DYNAMIC BEHAVIOR EXAMPLES:
 - User asks "西安有什么好玩的" → Show Hero + 12-15 historical/cultural attractions (兵马俑, 大雁塔, 华清池, 城墙, 钟楼, 鼓楼, 大唐芙蓉园, 陕西历史博物馆, 华山, 法门寺, 大明宫, 小雁塔, 碑林博物馆, 青龙寺, 大慈恩寺)

@@ -33,6 +33,11 @@ function processNonAttractionComponent(comp: ComponentData, idx: number, compone
       break;
       
     case 'info':
+      // Skip info components with empty content
+      if (!comp.content || comp.content.trim().length === 0) {
+        console.warn('⚠️ Skipping info component with empty content:', comp.title);
+        break;
+      }
       components.push(
         <InfoCard
           key={`info-${idx}`}
@@ -372,6 +377,11 @@ export function parseJSONComponents(content: string): ParsedResponse {
           break;
           
         case 'info':
+          // Skip info components with empty content
+          if (!comp.content || comp.content.trim().length === 0) {
+            console.warn('⚠️ Skipping info component with empty content:', comp.title);
+            break;
+          }
           components.push(
             <InfoCard
               key={`info-${idx}`}

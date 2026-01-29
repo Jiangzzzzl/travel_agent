@@ -95,6 +95,7 @@ class DestinationContextManager {
     
     // 首先尝试从复合格式中提取主要城市名称
     // 例如：'大理洱海 (Dali & Erhai Lake)' -> '大理'
+    // 例如：'Xi An 3-Day Culture Trip' -> 'Xi An'
     
     // 特殊处理：直接检查是否包含已知城市名
     const knownCities = [
@@ -115,6 +116,8 @@ class DestinationContextManager {
     
     // 如果没有找到已知城市，尝试正则表达式提取
     const compoundPatterns = [
+      // 英文城市名 + 数字 + Day + 其他词汇 (如: "Xi An 3-Day Culture Trip")
+      /^([A-Za-z]+(?:\s+[A-Za-z]+)*)\s+\d+[-\s]*[Dd]ay/,
       // 中文城市名 + 景点名 + 英文括号格式 - 只提取前2个中文字符作为城市名
       /^([\u4e00-\u9fa5]{2})[\u4e00-\u9fa5]*\s*\([^)]+\)$/,
       // 中文城市名 + 景点名（无括号） - 只提取前2个中文字符作为城市名  
