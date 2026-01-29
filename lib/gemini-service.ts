@@ -124,7 +124,7 @@ export async function searchPlacesWithGemini(query: string): Promise<GeminiPlace
           console.warn('⚠️ Filtered out place with invalid data:', place.name, place.address);
         }
         
-        return isValidAddress && hasRequiredFields;
+        return !!isValidAddress && !!hasRequiredFields;
       }
     );
     
