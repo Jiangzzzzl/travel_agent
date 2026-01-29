@@ -48,7 +48,7 @@ export async function GET() {
     });
     
   } catch (error: any) {
-    console.error('‚ù?Error in simple test:', error);
+    console.error('‚ùå Error in simple test:', error);
     return NextResponse.json({ 
       error: 'Internal server error', 
       details: error.message 
