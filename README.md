@@ -2,6 +2,8 @@
 
 一个基于 AI 的智能旅行规划应用，集成 Google Gemini API 和 Google Maps Routes API，提供个性化的旅行建议和基于真实交通数据的行程规划。
 
+🌐 **Live Demo**: [部署到 Vercel](https://vercel.com)
+
 ## 🌟 主要特性
 
 - **AI 驱动规划** - 使用 Google Gemini 2.0 Flash 生成智能旅行建议
