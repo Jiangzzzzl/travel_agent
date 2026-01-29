@@ -109,20 +109,24 @@ export async function searchPlacesWithGemini(query: string): Promise<GeminiPlace
       console.log(`     Coordinates: ${place.coordinates.lat}, ${place.coordinates.lng}`);
     });
     
-    // 验证返回的地址是否为占位符
-    const validPlaces = result.object.places.filter(place => {
-      const isValidAddress = place.address && 
-        !place.address.includes('的地址信息') && 
-        !place.address.includes('地址信息') &&
-        !place.address.includes('具体地址') &&
-        place.address.length > 10; // 确保地址足够详细
-      
-      if (!isValidAddress) {
-        console.warn('⚠️ Filtered out place with invalid address:', place.name, place.address);
+    // 验证返回的地址是否为占位符，并确保类型安全
+    const validPlaces: GeminiPlaceResult[] = result.object.places.filter(
+      (place): place is GeminiPlaceResult => {
+        const isValidAddress = place.address && 
+          !place.address.includes('的地址信息') && 
+          !place.address.includes('地址信息') &&
+          !place.address.includes('具体地址') &&
+          place.address.length > 10; // 确保地址足够详细
+        
+        const hasRequiredFields = place.name && place.address && place.type && place.description;
+        
+        if (!isValidAddress || !hasRequiredFields) {
+          console.warn('⚠️ Filtered out place with invalid data:', place.name, place.address);
+        }
+        
+        return isValidAddress && hasRequiredFields;
       }
-      
-      return isValidAddress;
-    });
+    );
     
     console.log('✅ Valid places after filtering:', validPlaces.length);
     return validPlaces;
